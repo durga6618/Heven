@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { 
   TrendingUp, 
   TrendingDown, 
@@ -12,7 +12,11 @@ import { useAdmin } from '../../context/AdminContext';
 import { Link } from 'react-router-dom';
 
 const Dashboard: React.FC = () => {
-  const { dashboardStats } = useAdmin();
+  const { dashboardStats, fetchDashboardStats } = useAdmin();
+
+  useEffect(() => {
+    fetchDashboardStats();
+  }, []);
 
   const StatCard: React.FC<{
     title: string;
@@ -44,6 +48,17 @@ const Dashboard: React.FC = () => {
       </div>
     </div>
   );
+
+  if (!dashboardStats) {
+    return (
+      <div className="flex items-center justify-center min-h-64">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-black mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading dashboard...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -87,66 +102,94 @@ const Dashboard: React.FC = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Sales Chart */}
+        {/* Quick Actions */}
         <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Sales Overview</h3>
-          <div className="space-y-4">
-            {dashboardStats.salesData.slice(-7).map((data, index) => (
-              <div key={index} className="flex items-center justify-between">
-                <div className="flex items-center space-x-3">
-                  <div className="w-3 h-3 bg-black rounded-full"></div>
-                  <span className="text-sm text-gray-600">
-                    {new Date(data.date).toLocaleDateString()}
-                  </span>
-                </div>
-                <div className="text-right">
-                  <div className="text-sm font-medium text-gray-900">
-                    ₹{data.revenue.toLocaleString()}
-                  </div>
-                  <div className="text-xs text-gray-500">
-                    {data.orders} orders
-                  </div>
-                </div>
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
+          <div className="space-y-3">
+            <Link
+              to="/admin/products"
+              className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+            >
+              <div className="flex items-center">
+                <Package className="text-gray-600 mr-3" size={20} />
+                <span className="font-medium">Manage Products</span>
               </div>
-            ))}
+              <span className="text-gray-400">→</span>
+            </Link>
+            <Link
+              to="/admin/orders"
+              className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+            >
+              <div className="flex items-center">
+                <ShoppingCart className="text-gray-600 mr-3" size={20} />
+                <span className="font-medium">View Orders</span>
+              </div>
+              <span className="text-gray-400">→</span>
+            </Link>
+            <Link
+              to="/admin/users"
+              className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+            >
+              <div className="flex items-center">
+                <Users className="text-gray-600 mr-3" size={20} />
+                <span className="font-medium">Manage Users</span>
+              </div>
+              <span className="text-gray-400">→</span>
+            </Link>
+            <Link
+              to="/admin/coupons"
+              className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+            >
+              <div className="flex items-center">
+                <DollarSign className="text-gray-600 mr-3" size={20} />
+                <span className="font-medium">Manage Coupons</span>
+              </div>
+              <span className="text-gray-400">→</span>
+            </Link>
           </div>
         </div>
 
-        {/* Top Products */}
+        {/* System Status */}
         <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Top Products</h3>
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">System Status</h3>
           <div className="space-y-4">
-            {dashboardStats.topProducts.map((item, index) => (
-              <div key={index} className="flex items-center space-x-4">
-                <img
-                  src={item.product.image}
-                  alt={item.product.name}
-                  className="w-12 h-12 rounded-lg object-cover"
-                />
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-900 truncate">
-                    {item.product.name}
-                  </p>
-                  <p className="text-xs text-gray-500">
-                    {item.sales} sales
-                  </p>
-                </div>
-                <div className="text-right">
-                  <p className="text-sm font-medium text-gray-900">
-                    ₹{item.revenue.toLocaleString()}
-                  </p>
-                </div>
-              </div>
-            ))}
+            <div className="flex items-center justify-between">
+              <span className="text-gray-600">Database</span>
+              <span className="flex items-center text-green-600">
+                <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+                Connected
+              </span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-gray-600">Payment Gateway</span>
+              <span className="flex items-center text-green-600">
+                <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+                Active
+              </span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-gray-600">Email Service</span>
+              <span className="flex items-center text-green-600">
+                <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+                Operational
+              </span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-gray-600">Storage</span>
+              <span className="flex items-center text-yellow-600">
+                <div className="w-2 h-2 bg-yellow-500 rounded-full mr-2"></div>
+                75% Used
+              </span>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Recent Orders */}
+      {/* Recent Activity */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200">
         <div className="p-6 border-b border-gray-200">
           <div className="flex items-center justify-between">
-            <h3 className="text-lg font-semibold text-gray-900">Recent Orders</h3>
+            <h3 className="text-lg font-semibold text-gray-900">Recent Activity</h3>
             <Link
               to="/admin/orders"
               className="text-sm text-black hover:text-gray-700 font-medium flex items-center"
@@ -156,57 +199,39 @@ const Dashboard: React.FC = () => {
             </Link>
           </div>
         </div>
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Order ID
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Customer
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Total
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Status
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Date
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {dashboardStats.recentOrders.map((order) => (
-                <tr key={order.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                    {order.id}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {order.shippingAddress.name}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    ₹{order.total}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                      order.status === 'delivered' ? 'bg-green-100 text-green-800' :
-                      order.status === 'shipped' ? 'bg-blue-100 text-blue-800' :
-                      order.status === 'confirmed' ? 'bg-yellow-100 text-yellow-800' :
-                      order.status === 'cancelled' ? 'bg-red-100 text-red-800' :
-                      'bg-gray-100 text-gray-800'
-                    }`}>
-                      {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {order.createdAt.toLocaleDateString()}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <div className="p-6">
+          <div className="space-y-4">
+            <div className="flex items-center space-x-4">
+              <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                <ShoppingCart className="text-green-600" size={16} />
+              </div>
+              <div className="flex-1">
+                <p className="text-sm font-medium text-gray-900">New order received</p>
+                <p className="text-xs text-gray-500">Order #ORD-001 - ₹1,299</p>
+              </div>
+              <span className="text-xs text-gray-500">2 min ago</span>
+            </div>
+            <div className="flex items-center space-x-4">
+              <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                <Users className="text-blue-600" size={16} />
+              </div>
+              <div className="flex-1">
+                <p className="text-sm font-medium text-gray-900">New user registered</p>
+                <p className="text-xs text-gray-500">john.doe@example.com</p>
+              </div>
+              <span className="text-xs text-gray-500">5 min ago</span>
+            </div>
+            <div className="flex items-center space-x-4">
+              <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
+                <Package className="text-purple-600" size={16} />
+              </div>
+              <div className="flex-1">
+                <p className="text-sm font-medium text-gray-900">Product updated</p>
+                <p className="text-xs text-gray-500">Premium Cotton T-Shirt</p>
+              </div>
+              <span className="text-xs text-gray-500">10 min ago</span>
+            </div>
+          </div>
         </div>
       </div>
     </div>

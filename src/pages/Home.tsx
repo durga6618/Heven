@@ -1,12 +1,20 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Star, Truck, Shield, HeadphonesIcon } from 'lucide-react';
 import ProductCard from '../components/ProductCard';
-import { products } from '../data/products';
+import { useProducts } from '../hooks/useProducts';
 
 const Home: React.FC = () => {
-  const featuredProducts = products.filter(product => product.featured);
-  const trendingProducts = products.filter(product => product.trending);
+  const { products, loading } = useProducts();
+  const [featuredProducts, setFeaturedProducts] = useState<any[]>([]);
+  const [trendingProducts, setTrendingProducts] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (products.length > 0) {
+      setFeaturedProducts(products.filter(product => product.featured));
+      setTrendingProducts(products.filter(product => product.trending));
+    }
+  }, [products]);
 
   return (
     <div className="min-h-screen">
@@ -86,11 +94,19 @@ const Home: React.FC = () => {
               Discover our handpicked selection of premium products that define modern style and quality.
             </p>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {featuredProducts.map((product) => (
-              <ProductCard key={product.id} product={product} />
-            ))}
-          </div>
+          
+          {loading ? (
+            <div className="flex justify-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-black"></div>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {featuredProducts.map((product) => (
+                <ProductCard key={product.id} product={product} />
+              ))}
+            </div>
+          )}
+          
           <div className="text-center mt-12">
             <Link
               to="/products"
@@ -112,11 +128,18 @@ const Home: React.FC = () => {
               Stay ahead of the curve with our most popular items loved by customers worldwide.
             </p>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {trendingProducts.map((product) => (
-              <ProductCard key={product.id} product={product} />
-            ))}
-          </div>
+          
+          {loading ? (
+            <div className="flex justify-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-black"></div>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {trendingProducts.map((product) => (
+                <ProductCard key={product.id} product={product} />
+              ))}
+            </div>
+          )}
         </div>
       </section>
 

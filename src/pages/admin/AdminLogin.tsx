@@ -46,11 +46,11 @@ const AdminLogin: React.FC = () => {
     if (!validateForm()) return;
 
     try {
-      const success = await adminLogin(formData.email, formData.password);
-      if (success) {
+      const result = await adminLogin(formData.email, formData.password);
+      if (result.success) {
         navigate('/admin/dashboard');
       } else {
-        setErrors({ general: 'Invalid email or password' });
+        setErrors({ general: result.error || 'Invalid email or password' });
       }
     } catch (error) {
       console.error('Admin login error:', error);
@@ -153,9 +153,10 @@ const AdminLogin: React.FC = () => {
           </form>
 
           <div className="mt-6 text-center text-xs text-gray-500">
-            <p>Demo Credentials:</p>
-            <p>Email: admin@heven.com</p>
-            <p>Password: admin123</p>
+            <p>To create an admin account, you need to manually insert into the database:</p>
+            <p className="mt-2 text-xs bg-gray-100 p-2 rounded">
+              First create a user account, then add a record to the 'admins' table with that user's ID
+            </p>
           </div>
         </div>
 

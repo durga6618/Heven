@@ -63,18 +63,23 @@ const Auth: React.FC = () => {
 
     try {
       if (isLogin) {
-        const success = await login(formData.email, formData.password);
-        if (success) {
+        const result = await login(formData.email, formData.password);
+        if (result.success) {
           navigate('/');
+        } else {
+          setErrors({ general: result.error || 'Login failed' });
         }
       } else {
-        const success = await signup(formData.name, formData.email, formData.password);
-        if (success) {
+        const result = await signup(formData.name, formData.email, formData.password);
+        if (result.success) {
           navigate('/');
+        } else {
+          setErrors({ general: result.error || 'Signup failed' });
         }
       }
     } catch (error) {
       console.error('Auth error:', error);
+      setErrors({ general: 'An unexpected error occurred' });
     }
   };
 
@@ -107,6 +112,12 @@ const Auth: React.FC = () => {
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
+          {errors.general && (
+            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md">
+              <p className="text-sm text-red-600">{errors.general}</p>
+            </div>
+          )}
+
           <form className="space-y-6" onSubmit={handleSubmit}>
             {!isLogin && (
               <div>
@@ -238,24 +249,10 @@ const Auth: React.FC = () => {
             </div>
           </form>
 
-          <div className="mt-6">
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-300" />
-              </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white text-gray-500">Or continue with</span>
-              </div>
-            </div>
-
-            <div className="mt-6 grid grid-cols-2 gap-3">
-              <button className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 transition-colors duration-200">
-                Google
-              </button>
-              <button className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 transition-colors duration-200">
-                Facebook
-              </button>
-            </div>
+          <div className="mt-6 text-center text-xs text-gray-500">
+            <p>Demo Account:</p>
+            <p>Email: demo@heven.com</p>
+            <p>Password: demo123</p>
           </div>
         </div>
 

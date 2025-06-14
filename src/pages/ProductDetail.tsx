@@ -1,18 +1,38 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Heart, Star, Plus, Minus, ShoppingBag, ArrowLeft } from 'lucide-react';
-import { products } from '../data/products';
+import { useProducts } from '../hooks/useProducts';
 import { useCart } from '../context/CartContext';
+import { Product } from '../types';
 
 const ProductDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
-  const product = products.find(p => p.id === id);
+  const { products, loading } = useProducts();
   const { addToCart } = useCart();
+  const [product, setProduct] = useState<Product | null>(null);
 
   const [selectedImage, setSelectedImage] = useState(0);
   const [selectedSize, setSelectedSize] = useState('');
   const [selectedColor, setSelectedColor] = useState('');
   const [quantity, setQuantity] = useState(1);
+
+  useEffect(() => {
+    if (products.length > 0 && id) {
+      const foundProduct = products.find(p => p.id === id);
+      setProduct(foundProduct || null);
+    }
+  }, [products, id]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-black mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading product...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!product) {
     return (

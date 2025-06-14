@@ -1,9 +1,10 @@
 import React, { useState, useMemo } from 'react';
 import { Filter, Grid, List } from 'lucide-react';
 import ProductCard from '../components/ProductCard';
-import { products } from '../data/products';
+import { useProducts } from '../hooks/useProducts';
 
 const Products: React.FC = () => {
+  const { products, loading, error } = useProducts();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
   const [sortBy, setSortBy] = useState('');
@@ -41,13 +42,39 @@ const Products: React.FC = () => {
         filtered.sort((a, b) => b.rating - a.rating);
         break;
       case 'newest':
-        // Assuming newer products have higher IDs
-        filtered.sort((a, b) => parseInt(b.id) - parseInt(a.id));
+        filtered.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
         break;
     }
 
     return filtered;
-  }, [searchTerm, selectedCategory, sortBy, priceRange]);
+  }, [products, searchTerm, selectedCategory, sortBy, priceRange]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-black mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading products...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-red-600 mb-4">Error loading products: {error}</p>
+          <button 
+            onClick={() => window.location.reload()}
+            className="px-4 py-2 bg-black text-white rounded-md hover:bg-gray-800"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
