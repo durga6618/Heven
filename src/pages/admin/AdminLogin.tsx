@@ -48,7 +48,7 @@ const AdminLogin: React.FC = () => {
     try {
       const result = await adminLogin(formData.email, formData.password);
       if (result.success) {
-        navigate('/admin/dashboard');
+        navigate('/admin/Dashboard');
       } else {
         setErrors({ general: result.error || 'Invalid email or password' });
       }
