@@ -10,7 +10,30 @@ import {
   XCircle
 } from 'lucide-react';
 import { useAdmin } from '../../context/AdminContext';
-import { Order } from '../../types';
+
+interface Order {
+  id: string;
+  userId: string;
+  total: number;
+  status: 'pending' | 'confirmed' | 'shipped' | 'delivered' | 'cancelled';
+  shippingAddress: any;
+  paymentMethod: string;
+  trackingNumber?: string;
+  createdAt: Date;
+  updatedAt: Date;
+  items: Array<{
+    id: string;
+    quantity: number;
+    size: string;
+    color: string;
+    price: number;
+    product: {
+      id: string;
+      name: string;
+      image: string;
+    };
+  }>;
+}
 
 const OrderManagement: React.FC = () => {
   const { orders, updateOrderStatus } = useAdmin();
@@ -30,7 +53,7 @@ const OrderManagement: React.FC = () => {
 
   const filteredOrders = orders.filter(order => {
     const matchesSearch = order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         order.shippingAddress.name.toLowerCase().includes(searchTerm.toLowerCase());
+                         order.shippingAddress.name?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = !statusFilter || order.status === statusFilter;
     const matchesDate = !dateFilter || order.createdAt.toDateString().includes(dateFilter);
     
@@ -182,11 +205,11 @@ const OrderManagement: React.FC = () => {
                         Size: {item.size} | Color: {item.color}
                       </p>
                       <p className="text-sm text-gray-600">
-                        Qty: {item.quantity} × ₹{item.product.price}
+                        Qty: {item.quantity} × ₹{item.price}
                       </p>
                     </div>
                     <div className="text-right">
-                      <p className="font-medium">₹{item.product.price * item.quantity}</p>
+                      <p className="font-medium">₹{item.price * item.quantity}</p>
                     </div>
                   </div>
                 ))}
@@ -296,7 +319,7 @@ const OrderManagement: React.FC = () => {
               {filteredOrders.map((order) => (
                 <tr key={order.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                    {order.id}
+                    {order.id.slice(0, 8)}...
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     {order.shippingAddress.name}

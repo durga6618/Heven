@@ -9,10 +9,11 @@ import {
   Upload,
   Download
 } from 'lucide-react';
-import { products } from '../../data/products';
+import { useProducts } from '../../hooks/useProducts';
 import { Product } from '../../types';
 
 const ProductManagement: React.FC = () => {
+  const { products, loading, createProduct, updateProduct, deleteProduct } = useProducts();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
@@ -35,8 +36,11 @@ const ProductManagement: React.FC = () => {
       name: product?.name || '',
       price: product?.price || 0,
       originalPrice: product?.originalPrice || 0,
+      image: product?.image || '',
       category: product?.category || '',
       description: product?.description || '',
+      sizes: product?.sizes || [],
+      colors: product?.colors || [],
       stock: product?.stock || 0,
       sku: product?.sku || '',
       featured: product?.featured || false,
@@ -127,6 +131,19 @@ const ProductManagement: React.FC = () => {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
+                Image URL
+              </label>
+              <input
+                type="url"
+                value={formData.image}
+                onChange={(e) => setFormData({...formData, image: e.target.value})}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-black"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
                 Category
               </label>
               <select
@@ -153,6 +170,34 @@ const ProductManagement: React.FC = () => {
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-black"
                 required
               />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Sizes (comma separated)
+                </label>
+                <input
+                  type="text"
+                  value={formData.sizes.join(', ')}
+                  onChange={(e) => setFormData({...formData, sizes: e.target.value.split(',').map(s => s.trim())})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-black"
+                  placeholder="S, M, L, XL"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Colors (comma separated)
+                </label>
+                <input
+                  type="text"
+                  value={formData.colors.join(', ')}
+                  onChange={(e) => setFormData({...formData, colors: e.target.value.split(',').map(c => c.trim())})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-black"
+                  placeholder="Black, White, Gray"
+                />
+              </div>
             </div>
 
             <div className="flex space-x-4">
@@ -197,6 +242,17 @@ const ProductManagement: React.FC = () => {
       </div>
     );
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-64">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-black mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading products...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -292,7 +348,7 @@ const ProductManagement: React.FC = () => {
                           {product.name}
                         </div>
                         <div className="text-sm text-gray-500">
-                          SKU: {product.id}
+                          SKU: {product.sku}
                         </div>
                       </div>
                     </div>
@@ -312,7 +368,7 @@ const ProductManagement: React.FC = () => {
                     <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
                       product.inStock ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
                     }`}>
-                      {product.inStock ? 'In Stock' : 'Out of Stock'}
+                      {product.inStock ? `${product.stock} in stock` : 'Out of Stock'}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
@@ -340,7 +396,14 @@ const ProductManagement: React.FC = () => {
                       >
                         <Edit size={16} />
                       </button>
-                      <button className="text-red-600 hover:text-red-800">
+                      <button 
+                        onClick={() => {
+                          if (confirm('Are you sure you want to delete this product?')) {
+                            deleteProduct(product.id);
+                          }
+                        }}
+                        className="text-red-600 hover:text-red-800"
+                      >
                         <Trash2 size={16} />
                       </button>
                     </div>
@@ -357,8 +420,7 @@ const ProductManagement: React.FC = () => {
         <ProductModal
           onClose={() => setShowAddModal(false)}
           onSave={(product) => {
-            console.log('Adding product:', product);
-            // Add product logic here
+            createProduct(product as Omit<Product, 'id' | 'createdAt' | 'updatedAt'>);
           }}
         />
       )}
@@ -368,8 +430,7 @@ const ProductManagement: React.FC = () => {
           product={editingProduct}
           onClose={() => setEditingProduct(null)}
           onSave={(updates) => {
-            console.log('Updating product:', editingProduct.id, updates);
-            // Update product logic here
+            updateProduct(editingProduct.id, updates);
           }}
         />
       )}

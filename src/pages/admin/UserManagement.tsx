@@ -12,7 +12,18 @@ import {
   Calendar
 } from 'lucide-react';
 import { useAdmin } from '../../context/AdminContext';
-import { User } from '../../types';
+
+interface User {
+  id: string;
+  name: string;
+  email: string;
+  phone?: string;
+  isBlocked: boolean;
+  totalOrders: number;
+  totalSpent: number;
+  createdAt: Date;
+  lastLogin?: Date;
+}
 
 const UserManagement: React.FC = () => {
   const { users, toggleUserBlock } = useAdmin();
@@ -28,7 +39,7 @@ const UserManagement: React.FC = () => {
 
   const filteredUsers = users.filter(user => {
     const matchesSearch = user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         user.email.toLowerCase().includes(searchTerm.toLowerCase());
+                         (user.email && user.email.toLowerCase().includes(searchTerm.toLowerCase()));
     const matchesStatus = !statusFilter || 
                          (statusFilter === 'active' && !user.isBlocked) ||
                          (statusFilter === 'blocked' && user.isBlocked);
@@ -65,7 +76,7 @@ const UserManagement: React.FC = () => {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-600">Email</label>
-                  <p className="text-sm text-gray-900">{user.email}</p>
+                  <p className="text-sm text-gray-900">{user.email || 'Not available'}</p>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-600">Phone</label>
@@ -316,10 +327,12 @@ const UserManagement: React.FC = () => {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm text-gray-900">
-                      <div className="flex items-center">
-                        <Mail size={14} className="mr-1 text-gray-400" />
-                        {user.email}
-                      </div>
+                      {user.email && (
+                        <div className="flex items-center">
+                          <Mail size={14} className="mr-1 text-gray-400" />
+                          {user.email}
+                        </div>
+                      )}
                       {user.phone && (
                         <div className="flex items-center mt-1">
                           <Phone size={14} className="mr-1 text-gray-400" />
