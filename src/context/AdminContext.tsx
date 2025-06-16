@@ -100,63 +100,28 @@ export const AdminProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   const [orders, setOrders] = useState<Order[]>([]);
   const [coupons, setCoupons] = useState<Coupon[]>([]);
 
-  const fetchAdminProfile = async (userId: string) => {
-    try {
-      const { data, error } = await supabase
-        .from('admins')
-        .select('*')
-        .eq('id', userId)
-        .single();
-
-      if (error) {
-        console.error('Error fetching admin profile:', error);
-        return null;
-      }
-
-      return data;
-    } catch (error) {
-      console.error('Error fetching admin profile:', error);
-      return null;
-    }
+  // Demo admin credentials
+  const DEMO_ADMIN = {
+    id: 'demo-admin-id',
+    name: 'Demo Admin',
+    email: 'admin@heven.com',
+    role: 'admin' as const,
+    permissions: ['all'],
+    created_at: new Date().toISOString(),
+    last_login: new Date().toISOString(),
   };
 
   const adminLogin = async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
     try {
       setIsLoading(true);
       
-      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-
-      if (authError) {
-        return { success: false, error: authError.message };
-      }
-
-      if (authData.user) {
-        // Check if user is an admin
-        const adminData = await fetchAdminProfile(authData.user.id);
-        
-        if (!adminData) {
-          await supabase.auth.signOut();
-          return { success: false, error: 'Access denied. Admin privileges required.' };
-        }
-
-        // Update last login
-        await supabase
-          .from('admins')
-          .update({ last_login: new Date().toISOString() })
-          .eq('id', authData.user.id);
-
-        setAdmin({
-          ...adminData,
-          email: authData.user.email || '',
-        });
-
+      // Demo credentials check
+      if (email === 'admin@heven.com' && password === 'admin123') {
+        setAdmin(DEMO_ADMIN);
         return { success: true };
       }
 
-      return { success: false, error: 'Login failed' };
+      return { success: false, error: 'Invalid credentials. Use admin@heven.com / admin123' };
     } catch (error) {
       return { success: false, error: 'An unexpected error occurred' };
     } finally {
@@ -164,8 +129,7 @@ export const AdminProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     }
   };
 
-  const adminLogout = async () => {
-    await supabase.auth.signOut();
+  const adminLogout = () => {
     setAdmin(null);
   };
 

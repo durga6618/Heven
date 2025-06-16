@@ -1,23 +1,30 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Search, ShoppingBag, User, Menu, X, Heart } from 'lucide-react';
+import { Search, ShoppingBag, User, Menu, X, Heart, Package } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 
 const Header: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const { getItemCount } = useCart();
-  const { user, logout } = useAuth();
+  const { user, profile, logout } = useAuth();
   const navigate = useNavigate();
   const itemCount = getItemCount();
 
   const handleAuthClick = () => {
     if (user) {
-      logout();
+      setIsUserMenuOpen(!isUserMenuOpen);
     } else {
       navigate('/auth');
     }
+  };
+
+  const handleLogout = async () => {
+    await logout();
+    setIsUserMenuOpen(false);
+    navigate('/');
   };
 
   return (
@@ -59,12 +66,44 @@ const Header: React.FC = () => {
             <button className="p-2 text-gray-700 hover:text-black transition-colors duration-200">
               <Heart size={20} />
             </button>
-            <button
-              onClick={handleAuthClick}
-              className="p-2 text-gray-700 hover:text-black transition-colors duration-200"
-            >
-              <User size={20} />
-            </button>
+            
+            {/* User Menu */}
+            <div className="relative">
+              <button
+                onClick={handleAuthClick}
+                className="p-2 text-gray-700 hover:text-black transition-colors duration-200 flex items-center space-x-1"
+              >
+                <User size={20} />
+                {user && profile && (
+                  <span className="text-sm font-medium">{profile.name}</span>
+                )}
+              </button>
+              
+              {/* User Dropdown */}
+              {isUserMenuOpen && user && (
+                <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 border border-gray-200">
+                  <div className="px-4 py-2 border-b border-gray-200">
+                    <p className="text-sm font-medium text-gray-900">{profile?.name}</p>
+                    <p className="text-sm text-gray-500">{user.email}</p>
+                  </div>
+                  <Link
+                    to="/orders"
+                    className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    onClick={() => setIsUserMenuOpen(false)}
+                  >
+                    <Package className="mr-2" size={16} />
+                    My Orders
+                  </Link>
+                  <button
+                    onClick={handleLogout}
+                    className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  >
+                    Sign Out
+                  </button>
+                </div>
+              )}
+            </div>
+
             <Link
               to="/cart"
               className="relative p-2 text-gray-700 hover:text-black transition-colors duration-200"
@@ -135,6 +174,28 @@ const Header: React.FC = () => {
             >
               Contact
             </Link>
+            
+            {user && (
+              <>
+                <Link
+                  to="/orders"
+                  className="block px-3 py-2 text-gray-700 hover:text-black hover:bg-gray-50 rounded-md transition-colors duration-200"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  My Orders
+                </Link>
+                <button
+                  onClick={() => {
+                    handleLogout();
+                    setIsMenuOpen(false);
+                  }}
+                  className="block w-full text-left px-3 py-2 text-gray-700 hover:text-black hover:bg-gray-50 rounded-md transition-colors duration-200"
+                >
+                  Sign Out
+                </button>
+              </>
+            )}
+            
             <div className="flex items-center justify-around pt-4 border-t border-gray-200">
               <button className="p-2 text-gray-700 hover:text-black transition-colors duration-200">
                 <Search size={20} />
@@ -142,12 +203,17 @@ const Header: React.FC = () => {
               <button className="p-2 text-gray-700 hover:text-black transition-colors duration-200">
                 <Heart size={20} />
               </button>
-              <button
-                onClick={handleAuthClick}
-                className="p-2 text-gray-700 hover:text-black transition-colors duration-200"
-              >
-                <User size={20} />
-              </button>
+              {!user && (
+                <button
+                  onClick={() => {
+                    navigate('/auth');
+                    setIsMenuOpen(false);
+                  }}
+                  className="p-2 text-gray-700 hover:text-black transition-colors duration-200"
+                >
+                  <User size={20} />
+                </button>
+              )}
               <Link
                 to="/cart"
                 className="relative p-2 text-gray-700 hover:text-black transition-colors duration-200"

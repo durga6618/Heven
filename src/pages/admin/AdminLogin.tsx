@@ -6,8 +6,8 @@ import { useAdmin } from '../../context/AdminContext';
 const AdminLogin: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
-    email: '',
-    password: '',
+    email: 'admin@heven.com',
+    password: 'admin123',
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   
@@ -152,11 +152,14 @@ const AdminLogin: React.FC = () => {
             </div>
           </form>
 
-          <div className="mt-6 text-center text-xs text-gray-500">
-            <p>To create an admin account, you need to manually insert into the database:</p>
-            <p className="mt-2 text-xs bg-gray-100 p-2 rounded">
-              First create a user account, then add a record to the 'admins' table with that user's ID
-            </p>
+          <div className="mt-6 text-center">
+            <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
+              <h3 className="text-sm font-medium text-blue-800 mb-2">Demo Credentials</h3>
+              <div className="text-xs text-blue-700 space-y-1">
+                <p><strong>Email:</strong> admin@heven.com</p>
+                <p><strong>Password:</strong> admin123</p>
+              </div>
+            </div>
           </div>
         </div>
 

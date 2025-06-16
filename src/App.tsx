@@ -13,6 +13,7 @@ import Cart from './pages/Cart';
 import Auth from './pages/Auth';
 import About from './pages/About';
 import Contact from './pages/Contact';
+import Orders from './pages/Orders';
 
 // Admin Pages
 import AdminLogin from './pages/admin/AdminLogin';
@@ -53,6 +54,7 @@ function App() {
                       <Route path="/products" element={<Products />} />
                       <Route path="/product/:id" element={<ProductDetail />} />
                       <Route path="/cart" element={<Cart />} />
+                      <Route path="/orders" element={<Orders />} />
                       <Route path="/auth" element={<Auth />} />
                       <Route path="/about" element={<About />} />
                       <Route path="/contact" element={<Contact />} />

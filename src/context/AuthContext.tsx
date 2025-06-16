@@ -136,7 +136,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   const logout = async () => {
-    await supabase.auth.signOut();
+    try {
+      await supabase.auth.signOut();
+      setUser(null);
+      setProfile(null);
+    } catch (error) {
+      console.error('Error logging out:', error);
+    }
   };
 
   const updateProfile = async (updates: Partial<UserProfile>) => {
