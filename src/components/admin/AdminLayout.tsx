@@ -23,6 +23,13 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
   const navigate = useNavigate();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
+  // Redirect to login if no admin
+  React.useEffect(() => {
+    if (!admin) {
+      navigate('/admin/login');
+    }
+  }, [admin, navigate]);
+
   const handleLogout = () => {
     adminLogout();
     navigate('/admin/login');
@@ -35,6 +42,10 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
     { path: '/admin/users', icon: Users, label: 'Users' },
     { path: '/admin/coupons', icon: Tag, label: 'Coupons' },
   ];
+
+  if (!admin) {
+    return null; // Will redirect to login
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 flex">

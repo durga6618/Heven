@@ -7,7 +7,8 @@ import {
   Trash2, 
   Eye,
   Upload,
-  Download
+  Download,
+  Image as ImageIcon
 } from 'lucide-react';
 import { useProducts } from '../../hooks/useProducts';
 import { Product } from '../../types';
@@ -37,6 +38,7 @@ const ProductManagement: React.FC = () => {
       price: product?.price || 0,
       originalPrice: product?.originalPrice || 0,
       image: product?.image || '',
+      images: product?.images || [''],
       category: product?.category || '',
       description: product?.description || '',
       sizes: product?.sizes || [],
@@ -47,182 +49,288 @@ const ProductManagement: React.FC = () => {
       trending: product?.trending || false,
     });
 
+    const [imagePreview, setImagePreview] = useState(product?.image || '');
+
+    const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>, index?: number) => {
+      const url = e.target.value;
+      if (index !== undefined) {
+        // Update specific image in array
+        const newImages = [...formData.images];
+        newImages[index] = url;
+        setFormData({...formData, images: newImages});
+      } else {
+        // Update main image
+        setFormData({...formData, image: url});
+        setImagePreview(url);
+      }
+    };
+
+    const addImageField = () => {
+      setFormData({...formData, images: [...formData.images, '']});
+    };
+
+    const removeImageField = (index: number) => {
+      const newImages = formData.images.filter((_, i) => i !== index);
+      setFormData({...formData, images: newImages});
+    };
+
     const handleSubmit = (e: React.FormEvent) => {
       e.preventDefault();
-      onSave(formData);
+      
+      // Filter out empty image URLs
+      const filteredImages = formData.images.filter(img => img.trim() !== '');
+      
+      const productData = {
+        ...formData,
+        images: filteredImages.length > 0 ? filteredImages : [formData.image],
+      };
+      
+      onSave(productData);
       onClose();
     };
 
     return (
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+        <div className="bg-white rounded-lg p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
           <h2 className="text-xl font-bold mb-4">
             {product ? 'Edit Product' : 'Add New Product'}
           </h2>
           
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Product Name
-                </label>
-                <input
-                  type="text"
-                  value={formData.name}
-                  onChange={(e) => setFormData({...formData, name: e.target.value})}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-black"
-                  required
-                />
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Left Column - Product Info */}
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Product Name *
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.name}
+                      onChange={(e) => setFormData({...formData, name: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-black"
+                      required
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      SKU *
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.sku}
+                      onChange={(e) => setFormData({...formData, sku: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-black"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Price (₹) *
+                    </label>
+                    <input
+                      type="number"
+                      value={formData.price}
+                      onChange={(e) => setFormData({...formData, price: Number(e.target.value)})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-black"
+                      required
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Original Price (₹)
+                    </label>
+                    <input
+                      type="number"
+                      value={formData.originalPrice}
+                      onChange={(e) => setFormData({...formData, originalPrice: Number(e.target.value)})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-black"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Stock *
+                    </label>
+                    <input
+                      type="number"
+                      value={formData.stock}
+                      onChange={(e) => setFormData({...formData, stock: Number(e.target.value)})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-black"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Category *
+                  </label>
+                  <select
+                    value={formData.category}
+                    onChange={(e) => setFormData({...formData, category: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-black"
+                    required
+                  >
+                    <option value="">Select Category</option>
+                    {categories.map(category => (
+                      <option key={category} value={category}>{category}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Description *
+                  </label>
+                  <textarea
+                    value={formData.description}
+                    onChange={(e) => setFormData({...formData, description: e.target.value})}
+                    rows={4}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-black"
+                    required
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Sizes (comma separated)
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.sizes.join(', ')}
+                      onChange={(e) => setFormData({...formData, sizes: e.target.value.split(',').map(s => s.trim()).filter(s => s)})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-black"
+                      placeholder="S, M, L, XL"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Colors (comma separated)
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.colors.join(', ')}
+                      onChange={(e) => setFormData({...formData, colors: e.target.value.split(',').map(c => c.trim()).filter(c => c)})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-black"
+                      placeholder="Black, White, Gray"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex space-x-4">
+                  <label className="flex items-center">
+                    <input
+                      type="checkbox"
+                      checked={formData.featured}
+                      onChange={(e) => setFormData({...formData, featured: e.target.checked})}
+                      className="mr-2"
+                    />
+                    Featured Product
+                  </label>
+                  
+                  <label className="flex items-center">
+                    <input
+                      type="checkbox"
+                      checked={formData.trending}
+                      onChange={(e) => setFormData({...formData, trending: e.target.checked})}
+                      className="mr-2"
+                    />
+                    Trending Product
+                  </label>
+                </div>
               </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  SKU
-                </label>
-                <input
-                  type="text"
-                  value={formData.sku}
-                  onChange={(e) => setFormData({...formData, sku: e.target.value})}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-black"
-                  required
-                />
+
+              {/* Right Column - Images */}
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Main Product Image *
+                  </label>
+                  <div className="space-y-2">
+                    <input
+                      type="url"
+                      value={formData.image}
+                      onChange={(e) => handleImageChange(e)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-black"
+                      placeholder="https://example.com/image.jpg"
+                      required
+                    />
+                    {imagePreview && (
+                      <div className="mt-2">
+                        <img
+                          src={imagePreview}
+                          alt="Preview"
+                          className="w-full h-32 object-cover rounded-md border border-gray-300"
+                          onError={() => setImagePreview('')}
+                        />
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="block text-sm font-medium text-gray-700">
+                      Additional Images
+                    </label>
+                    <button
+                      type="button"
+                      onClick={addImageField}
+                      className="text-sm text-blue-600 hover:text-blue-800 flex items-center"
+                    >
+                      <Plus size={16} className="mr-1" />
+                      Add Image
+                    </button>
+                  </div>
+                  <div className="space-y-2 max-h-48 overflow-y-auto">
+                    {formData.images.map((image, index) => (
+                      <div key={index} className="flex space-x-2">
+                        <input
+                          type="url"
+                          value={image}
+                          onChange={(e) => handleImageChange(e, index)}
+                          className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-black"
+                          placeholder="https://example.com/image.jpg"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => removeImageField(index)}
+                          className="px-3 py-2 text-red-600 hover:text-red-800"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
+                  <div className="flex items-start">
+                    <ImageIcon className="text-blue-500 mr-2 mt-1" size={16} />
+                    <div>
+                      <h4 className="text-sm font-medium text-blue-800">Image Guidelines</h4>
+                      <ul className="text-xs text-blue-700 mt-1 space-y-1">
+                        <li>• Use high-quality images (minimum 800x800px)</li>
+                        <li>• Supported formats: JPG, PNG, WebP</li>
+                        <li>• Use direct image URLs from image hosting services</li>
+                        <li>• First image will be used as the main product image</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Price (₹)
-                </label>
-                <input
-                  type="number"
-                  value={formData.price}
-                  onChange={(e) => setFormData({...formData, price: Number(e.target.value)})}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-black"
-                  required
-                />
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Original Price (₹)
-                </label>
-                <input
-                  type="number"
-                  value={formData.originalPrice}
-                  onChange={(e) => setFormData({...formData, originalPrice: Number(e.target.value)})}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-black"
-                />
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Stock
-                </label>
-                <input
-                  type="number"
-                  value={formData.stock}
-                  onChange={(e) => setFormData({...formData, stock: Number(e.target.value)})}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-black"
-                  required
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Image URL
-              </label>
-              <input
-                type="url"
-                value={formData.image}
-                onChange={(e) => setFormData({...formData, image: e.target.value})}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-black"
-                required
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Category
-              </label>
-              <select
-                value={formData.category}
-                onChange={(e) => setFormData({...formData, category: e.target.value})}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-black"
-                required
-              >
-                <option value="">Select Category</option>
-                {categories.map(category => (
-                  <option key={category} value={category}>{category}</option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Description
-              </label>
-              <textarea
-                value={formData.description}
-                onChange={(e) => setFormData({...formData, description: e.target.value})}
-                rows={4}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-black"
-                required
-              />
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Sizes (comma separated)
-                </label>
-                <input
-                  type="text"
-                  value={formData.sizes.join(', ')}
-                  onChange={(e) => setFormData({...formData, sizes: e.target.value.split(',').map(s => s.trim())})}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-black"
-                  placeholder="S, M, L, XL"
-                />
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Colors (comma separated)
-                </label>
-                <input
-                  type="text"
-                  value={formData.colors.join(', ')}
-                  onChange={(e) => setFormData({...formData, colors: e.target.value.split(',').map(c => c.trim())})}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-black"
-                  placeholder="Black, White, Gray"
-                />
-              </div>
-            </div>
-
-            <div className="flex space-x-4">
-              <label className="flex items-center">
-                <input
-                  type="checkbox"
-                  checked={formData.featured}
-                  onChange={(e) => setFormData({...formData, featured: e.target.checked})}
-                  className="mr-2"
-                />
-                Featured Product
-              </label>
-              
-              <label className="flex items-center">
-                <input
-                  type="checkbox"
-                  checked={formData.trending}
-                  onChange={(e) => setFormData({...formData, trending: e.target.checked})}
-                  className="mr-2"
-                />
-                Trending Product
-              </label>
-            </div>
-
-            <div className="flex justify-end space-x-3 pt-4">
+            <div className="flex justify-end space-x-3 pt-4 border-t">
               <button
                 type="button"
                 onClick={onClose}

@@ -22,9 +22,13 @@ const Header: React.FC = () => {
   };
 
   const handleLogout = async () => {
-    await logout();
-    setIsUserMenuOpen(false);
-    navigate('/');
+    try {
+      await logout();
+      setIsUserMenuOpen(false);
+      navigate('/');
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
   };
 
   return (

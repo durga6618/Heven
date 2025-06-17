@@ -111,6 +111,20 @@ export const AdminProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     last_login: new Date().toISOString(),
   };
 
+  // Check for existing admin session on mount
+  useEffect(() => {
+    const savedAdmin = localStorage.getItem('heven_admin');
+    if (savedAdmin) {
+      try {
+        const adminData = JSON.parse(savedAdmin);
+        setAdmin(adminData);
+      } catch (error) {
+        console.error('Error parsing saved admin data:', error);
+        localStorage.removeItem('heven_admin');
+      }
+    }
+  }, []);
+
   const adminLogin = async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
     try {
       setIsLoading(true);
@@ -118,6 +132,7 @@ export const AdminProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       // Demo credentials check
       if (email === 'admin@heven.com' && password === 'admin123') {
         setAdmin(DEMO_ADMIN);
+        localStorage.setItem('heven_admin', JSON.stringify(DEMO_ADMIN));
         return { success: true };
       }
 
@@ -131,6 +146,11 @@ export const AdminProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 
   const adminLogout = () => {
     setAdmin(null);
+    setDashboardStats(null);
+    setUsers([]);
+    setOrders([]);
+    setCoupons([]);
+    localStorage.removeItem('heven_admin');
   };
 
   const fetchDashboardStats = async () => {
