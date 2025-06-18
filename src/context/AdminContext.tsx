@@ -1,5 +1,4 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { User as SupabaseUser } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
 
 interface Admin {
@@ -138,6 +137,7 @@ export const AdminProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 
       return { success: false, error: 'Invalid credentials. Use admin@heven.com / admin123' };
     } catch (error) {
+      console.error('Admin login error:', error);
       return { success: false, error: 'An unexpected error occurred' };
     } finally {
       setIsLoading(false);
@@ -145,12 +145,14 @@ export const AdminProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   };
 
   const adminLogout = () => {
+    console.log('Admin logging out...');
     setAdmin(null);
     setDashboardStats(null);
     setUsers([]);
     setOrders([]);
     setCoupons([]);
     localStorage.removeItem('heven_admin');
+    console.log('Admin logged out successfully');
   };
 
   const fetchDashboardStats = async () => {
@@ -204,7 +206,7 @@ export const AdminProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         return;
       }
 
-      const formattedUsers: User[] = data.map(user => ({
+      const formattedUsers: User[] = (data || []).map(user => ({
         id: user.id,
         name: user.name,
         email: '', // Will be fetched from auth if needed
@@ -245,7 +247,7 @@ export const AdminProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         return;
       }
 
-      const formattedOrders: Order[] = data.map(order => ({
+      const formattedOrders: Order[] = (data || []).map(order => ({
         id: order.id,
         userId: order.user_id,
         total: Number(order.total),
@@ -255,16 +257,16 @@ export const AdminProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         trackingNumber: order.tracking_number,
         createdAt: new Date(order.created_at),
         updatedAt: new Date(order.updated_at),
-        items: order.order_items.map((item: any) => ({
+        items: (order.order_items || []).map((item: any) => ({
           id: item.id,
           quantity: item.quantity,
           size: item.size,
           color: item.color,
           price: Number(item.price),
           product: {
-            id: item.products.id,
-            name: item.products.name,
-            image: item.products.image,
+            id: item.products?.id || '',
+            name: item.products?.name || '',
+            image: item.products?.image || '',
           },
         })),
       }));
@@ -287,7 +289,7 @@ export const AdminProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         return;
       }
 
-      const formattedCoupons: Coupon[] = data.map(coupon => ({
+      const formattedCoupons: Coupon[] = (data || []).map(coupon => ({
         id: coupon.id,
         code: coupon.code,
         type: coupon.type,

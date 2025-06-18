@@ -32,16 +32,30 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   useEffect(() => {
     // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        fetchUserProfile(session.user.id);
+    const getInitialSession = async () => {
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        if (error) {
+          console.error('Error getting session:', error);
+        }
+        
+        setUser(session?.user ?? null);
+        if (session?.user) {
+          await fetchUserProfile(session.user.id);
+        }
+      } catch (error) {
+        console.error('Error in getInitialSession:', error);
+      } finally {
+        setIsLoading(false);
       }
-      setIsLoading(false);
-    });
+    };
+
+    getInitialSession();
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log('Auth state changed:', event, session?.user?.email);
+      
       setUser(session?.user ?? null);
       if (session?.user) {
         await fetchUserProfile(session.user.id);
@@ -87,11 +101,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       });
 
       if (error) {
+        console.error('Login error:', error);
         return { success: false, error: error.message };
       }
 
       return { success: true };
-    } catch (error) {
+    } catch (error: any) {
+      console.error('Login error:', error);
       return { success: false, error: 'An unexpected error occurred' };
     } finally {
       setIsLoading(false);
@@ -109,6 +125,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       });
 
       if (authError) {
+        console.error('Signup error:', authError);
         return { success: false, error: authError.message };
       }
 
@@ -128,7 +145,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       }
 
       return { success: true };
-    } catch (error) {
+    } catch (error: any) {
+      console.error('Signup error:', error);
       return { success: false, error: 'An unexpected error occurred' };
     } finally {
       setIsLoading(false);
@@ -138,14 +156,24 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const logout = async () => {
     try {
       setIsLoading(true);
+      console.log('Logging out user...');
+      
       const { error } = await supabase.auth.signOut();
       if (error) {
         console.error('Error logging out:', error);
+        throw error;
       }
+      
+      // Clear state immediately
       setUser(null);
       setProfile(null);
+      
+      console.log('User logged out successfully');
     } catch (error) {
       console.error('Error logging out:', error);
+      // Even if there's an error, clear the local state
+      setUser(null);
+      setProfile(null);
     } finally {
       setIsLoading(false);
     }

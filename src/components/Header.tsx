@@ -9,7 +9,7 @@ const Header: React.FC = () => {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const { getItemCount } = useCart();
-  const { user, profile, logout } = useAuth();
+  const { user, profile, logout, isLoading } = useAuth();
   const navigate = useNavigate();
   const itemCount = getItemCount();
 
@@ -23,11 +23,13 @@ const Header: React.FC = () => {
 
   const handleLogout = async () => {
     try {
-      await logout();
+      console.log('Header: Starting logout...');
       setIsUserMenuOpen(false);
+      await logout();
       navigate('/');
+      console.log('Header: Logout completed');
     } catch (error) {
-      console.error('Logout error:', error);
+      console.error('Header: Logout error:', error);
     }
   };
 
@@ -75,7 +77,8 @@ const Header: React.FC = () => {
             <div className="relative">
               <button
                 onClick={handleAuthClick}
-                className="p-2 text-gray-700 hover:text-black transition-colors duration-200 flex items-center space-x-1"
+                disabled={isLoading}
+                className="p-2 text-gray-700 hover:text-black transition-colors duration-200 flex items-center space-x-1 disabled:opacity-50"
               >
                 <User size={20} />
                 {user && profile && (
@@ -100,9 +103,10 @@ const Header: React.FC = () => {
                   </Link>
                   <button
                     onClick={handleLogout}
-                    className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    disabled={isLoading}
+                    className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 disabled:opacity-50"
                   >
-                    Sign Out
+                    {isLoading ? 'Signing out...' : 'Sign Out'}
                   </button>
                 </div>
               )}
@@ -193,9 +197,10 @@ const Header: React.FC = () => {
                     handleLogout();
                     setIsMenuOpen(false);
                   }}
-                  className="block w-full text-left px-3 py-2 text-gray-700 hover:text-black hover:bg-gray-50 rounded-md transition-colors duration-200"
+                  disabled={isLoading}
+                  className="block w-full text-left px-3 py-2 text-gray-700 hover:text-black hover:bg-gray-50 rounded-md transition-colors duration-200 disabled:opacity-50"
                 >
-                  Sign Out
+                  {isLoading ? 'Signing out...' : 'Sign Out'}
                 </button>
               </>
             )}

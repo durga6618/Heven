@@ -74,7 +74,7 @@ const ProductManagement: React.FC = () => {
       setFormData({...formData, images: newImages});
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
       e.preventDefault();
       
       // Filter out empty image URLs
@@ -83,14 +83,22 @@ const ProductManagement: React.FC = () => {
       const productData = {
         ...formData,
         images: filteredImages.length > 0 ? filteredImages : [formData.image],
+        inStock: formData.stock > 0,
+        rating: 4.5, // Default rating
+        reviewCount: 0, // Default review count
       };
       
-      onSave(productData);
-      onClose();
+      try {
+        await onSave(productData);
+        onClose();
+      } catch (error) {
+        console.error('Error saving product:', error);
+        alert('Error saving product. Please try again.');
+      }
     };
 
     return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
         <div className="bg-white rounded-lg p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
           <h2 className="text-xl font-bold mb-4">
             {product ? 'Edit Product' : 'Add New Product'}
@@ -450,6 +458,10 @@ const ProductManagement: React.FC = () => {
                         src={product.image}
                         alt={product.name}
                         className="w-12 h-12 rounded-lg object-cover"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.src = 'https://images.pexels.com/photos/769732/pexels-photo-769732.jpeg?auto=compress&cs=tinysrgb&w=200';
+                        }}
                       />
                       <div className="ml-4">
                         <div className="text-sm font-medium text-gray-900">
@@ -527,8 +539,11 @@ const ProductManagement: React.FC = () => {
       {showAddModal && (
         <ProductModal
           onClose={() => setShowAddModal(false)}
-          onSave={(product) => {
-            createProduct(product as Omit<Product, 'id' | 'createdAt' | 'updatedAt'>);
+          onSave={async (product) => {
+            const result = await createProduct(product as Omit<Product, 'id' | 'createdAt' | 'updatedAt'>);
+            if (result.success) {
+              setShowAddModal(false);
+            }
           }}
         />
       )}
@@ -537,8 +552,11 @@ const ProductManagement: React.FC = () => {
         <ProductModal
           product={editingProduct}
           onClose={() => setEditingProduct(null)}
-          onSave={(updates) => {
-            updateProduct(editingProduct.id, updates);
+          onSave={async (updates) => {
+            const result = await updateProduct(editingProduct.id, updates);
+            if (result.success) {
+              setEditingProduct(null);
+            }
           }}
         />
       )}

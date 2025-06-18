@@ -10,42 +10,49 @@ export const useProducts = () => {
   const fetchProducts = async () => {
     try {
       setLoading(true);
+      setError(null);
+      
       const { data, error } = await supabase
         .from('products')
         .select('*')
         .order('created_at', { ascending: false });
 
       if (error) {
+        console.error('Supabase error:', error);
         setError(error.message);
         return;
       }
 
-      const formattedProducts: Product[] = data.map(product => ({
-        id: product.id,
-        name: product.name,
-        price: product.price,
-        originalPrice: product.original_price,
-        image: product.image,
-        images: product.images,
-        category: product.category,
-        description: product.description,
-        sizes: product.sizes,
-        colors: product.colors,
-        rating: product.rating,
-        reviewCount: product.review_count,
-        inStock: product.in_stock,
-        featured: product.featured,
-        trending: product.trending,
-        stock: product.stock_quantity,
-        sku: product.sku,
-        createdAt: new Date(product.created_at),
-        updatedAt: new Date(product.updated_at),
-      }));
+      if (data) {
+        const formattedProducts: Product[] = data.map(product => ({
+          id: product.id,
+          name: product.name,
+          price: Number(product.price),
+          originalPrice: product.original_price ? Number(product.original_price) : undefined,
+          image: product.image,
+          images: product.images || [product.image],
+          category: product.category,
+          description: product.description,
+          sizes: product.sizes || [],
+          colors: product.colors || [],
+          rating: Number(product.rating) || 0,
+          reviewCount: product.review_count || 0,
+          inStock: product.in_stock !== false,
+          featured: product.featured || false,
+          trending: product.trending || false,
+          stock: product.stock_quantity || 0,
+          sku: product.sku,
+          createdAt: new Date(product.created_at),
+          updatedAt: new Date(product.updated_at),
+        }));
 
-      setProducts(formattedProducts);
-    } catch (err) {
-      setError('Failed to fetch products');
+        setProducts(formattedProducts);
+      } else {
+        setProducts([]);
+      }
+    } catch (err: any) {
       console.error('Error fetching products:', err);
+      setError('Failed to fetch products');
     } finally {
       setLoading(false);
     }
@@ -65,18 +72,19 @@ export const useProducts = () => {
           description: productData.description,
           sizes: productData.sizes,
           colors: productData.colors,
-          rating: productData.rating,
-          review_count: productData.reviewCount,
-          in_stock: productData.inStock,
-          featured: productData.featured,
-          trending: productData.trending,
-          stock_quantity: productData.stock,
+          rating: productData.rating || 0,
+          review_count: productData.reviewCount || 0,
+          in_stock: productData.inStock !== false,
+          featured: productData.featured || false,
+          trending: productData.trending || false,
+          stock_quantity: productData.stock || 0,
           sku: productData.sku,
         })
         .select()
         .single();
 
       if (error) {
+        console.error('Error creating product:', error);
         throw error;
       }
 
@@ -90,29 +98,32 @@ export const useProducts = () => {
 
   const updateProduct = async (id: string, updates: Partial<Product>) => {
     try {
+      const updateData: any = {};
+      
+      if (updates.name !== undefined) updateData.name = updates.name;
+      if (updates.price !== undefined) updateData.price = updates.price;
+      if (updates.originalPrice !== undefined) updateData.original_price = updates.originalPrice;
+      if (updates.image !== undefined) updateData.image = updates.image;
+      if (updates.images !== undefined) updateData.images = updates.images;
+      if (updates.category !== undefined) updateData.category = updates.category;
+      if (updates.description !== undefined) updateData.description = updates.description;
+      if (updates.sizes !== undefined) updateData.sizes = updates.sizes;
+      if (updates.colors !== undefined) updateData.colors = updates.colors;
+      if (updates.rating !== undefined) updateData.rating = updates.rating;
+      if (updates.reviewCount !== undefined) updateData.review_count = updates.reviewCount;
+      if (updates.inStock !== undefined) updateData.in_stock = updates.inStock;
+      if (updates.featured !== undefined) updateData.featured = updates.featured;
+      if (updates.trending !== undefined) updateData.trending = updates.trending;
+      if (updates.stock !== undefined) updateData.stock_quantity = updates.stock;
+      if (updates.sku !== undefined) updateData.sku = updates.sku;
+
       const { error } = await supabase
         .from('products')
-        .update({
-          name: updates.name,
-          price: updates.price,
-          original_price: updates.originalPrice,
-          image: updates.image,
-          images: updates.images,
-          category: updates.category,
-          description: updates.description,
-          sizes: updates.sizes,
-          colors: updates.colors,
-          rating: updates.rating,
-          review_count: updates.reviewCount,
-          in_stock: updates.inStock,
-          featured: updates.featured,
-          trending: updates.trending,
-          stock_quantity: updates.stock,
-          sku: updates.sku,
-        })
+        .update(updateData)
         .eq('id', id);
 
       if (error) {
+        console.error('Error updating product:', error);
         throw error;
       }
 
@@ -132,6 +143,7 @@ export const useProducts = () => {
         .eq('id', id);
 
       if (error) {
+        console.error('Error deleting product:', error);
         throw error;
       }
 

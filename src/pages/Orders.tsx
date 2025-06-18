@@ -31,11 +31,14 @@ const Orders: React.FC = () => {
   const { user } = useAuth();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
 
   useEffect(() => {
     if (user) {
       fetchOrders();
+    } else {
+      setLoading(false);
     }
   }, [user]);
 
@@ -43,6 +46,9 @@ const Orders: React.FC = () => {
     if (!user) return;
 
     try {
+      setLoading(true);
+      setError(null);
+
       const { data, error } = await supabase
         .from('orders')
         .select(`
@@ -61,10 +67,11 @@ const Orders: React.FC = () => {
 
       if (error) {
         console.error('Error fetching orders:', error);
+        setError('Failed to load orders');
         return;
       }
 
-      const formattedOrders: Order[] = data.map(order => ({
+      const formattedOrders: Order[] = (data || []).map(order => ({
         id: order.id,
         total: Number(order.total),
         status: order.status,
@@ -73,16 +80,16 @@ const Orders: React.FC = () => {
         tracking_number: order.tracking_number,
         payment_method: order.payment_method,
         shipping_address: order.shipping_address,
-        items: order.order_items.map((item: any) => ({
+        items: (order.order_items || []).map((item: any) => ({
           id: item.id,
           quantity: item.quantity,
           size: item.size,
           color: item.color,
           price: Number(item.price),
           product: {
-            id: item.products.id,
-            name: item.products.name,
-            image: item.products.image,
+            id: item.products?.id || '',
+            name: item.products?.name || 'Unknown Product',
+            image: item.products?.image || '/placeholder-image.jpg',
           },
         })),
       }));
@@ -90,6 +97,7 @@ const Orders: React.FC = () => {
       setOrders(formattedOrders);
     } catch (error) {
       console.error('Error fetching orders:', error);
+      setError('Failed to load orders');
     } finally {
       setLoading(false);
     }
@@ -151,7 +159,7 @@ const Orders: React.FC = () => {
     onClose: () => void;
   }> = ({ order, onClose }) => {
     return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
         <div className="bg-white rounded-lg p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-xl font-bold">Order Details - {order.id.slice(0, 8)}...</h2>
@@ -228,15 +236,17 @@ const Orders: React.FC = () => {
               </div>
 
               {/* Shipping Address */}
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <h3 className="font-semibold mb-2">Shipping Address</h3>
-                <div className="text-sm">
-                  <p className="font-medium">{order.shipping_address.name}</p>
-                  <p>{order.shipping_address.street}</p>
-                  <p>{order.shipping_address.city}, {order.shipping_address.state}</p>
-                  <p>{order.shipping_address.zipCode}</p>
+              {order.shipping_address && (
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <h3 className="font-semibold mb-2">Shipping Address</h3>
+                  <div className="text-sm">
+                    <p className="font-medium">{order.shipping_address.name}</p>
+                    <p>{order.shipping_address.street}</p>
+                    <p>{order.shipping_address.city}, {order.shipping_address.state}</p>
+                    <p>{order.shipping_address.zipCode}</p>
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
 
             {/* Order Items */}
@@ -249,6 +259,10 @@ const Orders: React.FC = () => {
                       src={item.product.image}
                       alt={item.product.name}
                       className="w-16 h-16 rounded-lg object-cover"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        target.src = 'https://images.pexels.com/photos/769732/pexels-photo-769732.jpeg?auto=compress&cs=tinysrgb&w=200';
+                      }}
                     />
                     <div className="flex-1">
                       <h4 className="font-medium">{item.product.name}</h4>
@@ -301,6 +315,22 @@ const Orders: React.FC = () => {
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-black mx-auto"></div>
           <p className="mt-4 text-gray-600">Loading your orders...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-red-600 mb-4">{error}</p>
+          <button
+            onClick={fetchOrders}
+            className="px-4 py-2 bg-black text-white rounded-md hover:bg-gray-800"
+          >
+            Retry
+          </button>
         </div>
       </div>
     );
@@ -377,6 +407,10 @@ const Orders: React.FC = () => {
                         src={item.product.image}
                         alt={item.product.name}
                         className="w-12 h-12 rounded-lg object-cover"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.src = 'https://images.pexels.com/photos/769732/pexels-photo-769732.jpeg?auto=compress&cs=tinysrgb&w=200';
+                        }}
                       />
                     ))}
                     {order.items.length > 3 && (
