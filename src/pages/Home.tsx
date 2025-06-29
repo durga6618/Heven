@@ -1,20 +1,26 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Star, Truck, Shield, HeadphonesIcon } from 'lucide-react';
+import { ArrowRight, Star, Truck, Shield, HeadphonesIcon, RefreshCw } from 'lucide-react';
 import ProductCard from '../components/ProductCard';
 import { useProducts } from '../hooks/useProducts';
 
 const Home: React.FC = () => {
-  const { products, loading } = useProducts();
+  const { products, loading, error, fetchProducts } = useProducts();
   const [featuredProducts, setFeaturedProducts] = useState<any[]>([]);
   const [trendingProducts, setTrendingProducts] = useState<any[]>([]);
 
   useEffect(() => {
     if (products.length > 0) {
+      console.log('Setting featured and trending products from:', products);
       setFeaturedProducts(products.filter(product => product.featured));
       setTrendingProducts(products.filter(product => product.trending));
     }
   }, [products]);
+
+  const handleRetry = () => {
+    console.log('Retrying to fetch products...');
+    fetchProducts();
+  };
 
   return (
     <div className="min-h-screen">
@@ -97,13 +103,38 @@ const Home: React.FC = () => {
           
           {loading ? (
             <div className="flex justify-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-black"></div>
+              <div className="text-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-black mx-auto"></div>
+                <p className="mt-4 text-gray-600">Loading featured products...</p>
+              </div>
             </div>
-          ) : (
+          ) : error ? (
+            <div className="text-center py-8">
+              <p className="text-red-600 mb-4">Error loading products: {error}</p>
+              <button
+                onClick={handleRetry}
+                className="inline-flex items-center px-4 py-2 bg-black text-white rounded-md hover:bg-gray-800 transition-colors duration-200"
+              >
+                <RefreshCw className="mr-2" size={16} />
+                Retry
+              </button>
+            </div>
+          ) : featuredProducts.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {featuredProducts.map((product) => (
                 <ProductCard key={product.id} product={product} />
               ))}
+            </div>
+          ) : (
+            <div className="text-center py-8">
+              <p className="text-gray-600 mb-4">No featured products available</p>
+              <button
+                onClick={handleRetry}
+                className="inline-flex items-center px-4 py-2 bg-black text-white rounded-md hover:bg-gray-800 transition-colors duration-200"
+              >
+                <RefreshCw className="mr-2" size={16} />
+                Refresh
+              </button>
             </div>
           )}
           
@@ -131,13 +162,38 @@ const Home: React.FC = () => {
           
           {loading ? (
             <div className="flex justify-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-black"></div>
+              <div className="text-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-black mx-auto"></div>
+                <p className="mt-4 text-gray-600">Loading trending products...</p>
+              </div>
             </div>
-          ) : (
+          ) : error ? (
+            <div className="text-center py-8">
+              <p className="text-red-600 mb-4">Error loading products: {error}</p>
+              <button
+                onClick={handleRetry}
+                className="inline-flex items-center px-4 py-2 bg-black text-white rounded-md hover:bg-gray-800 transition-colors duration-200"
+              >
+                <RefreshCw className="mr-2" size={16} />
+                Retry
+              </button>
+            </div>
+          ) : trendingProducts.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {trendingProducts.map((product) => (
                 <ProductCard key={product.id} product={product} />
               ))}
+            </div>
+          ) : (
+            <div className="text-center py-8">
+              <p className="text-gray-600 mb-4">No trending products available</p>
+              <button
+                onClick={handleRetry}
+                className="inline-flex items-center px-4 py-2 bg-black text-white rounded-md hover:bg-gray-800 transition-colors duration-200"
+              >
+                <RefreshCw className="mr-2" size={16} />
+                Refresh
+              </button>
             </div>
           )}
         </div>

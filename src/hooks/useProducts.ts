@@ -12,6 +12,8 @@ export const useProducts = () => {
       setLoading(true);
       setError(null);
       
+      console.log('Fetching products from database...');
+      
       const { data, error } = await supabase
         .from('products')
         .select('*')
@@ -23,7 +25,9 @@ export const useProducts = () => {
         return;
       }
 
-      if (data) {
+      console.log('Raw products data:', data);
+
+      if (data && data.length > 0) {
         const formattedProducts: Product[] = data.map(product => ({
           id: product.id,
           name: product.name,
@@ -46,8 +50,10 @@ export const useProducts = () => {
           updatedAt: new Date(product.updated_at),
         }));
 
+        console.log('Formatted products:', formattedProducts);
         setProducts(formattedProducts);
       } else {
+        console.log('No products found in database');
         setProducts([]);
       }
     } catch (err: any) {
@@ -60,6 +66,8 @@ export const useProducts = () => {
 
   const createProduct = async (productData: Omit<Product, 'id' | 'createdAt' | 'updatedAt'>) => {
     try {
+      console.log('Creating product:', productData);
+      
       const { data, error } = await supabase
         .from('products')
         .insert({
@@ -88,6 +96,7 @@ export const useProducts = () => {
         throw error;
       }
 
+      console.log('Product created successfully:', data);
       await fetchProducts(); // Refresh the list
       return { success: true, data };
     } catch (err: any) {
@@ -98,6 +107,8 @@ export const useProducts = () => {
 
   const updateProduct = async (id: string, updates: Partial<Product>) => {
     try {
+      console.log('Updating product:', id, updates);
+      
       const updateData: any = {};
       
       if (updates.name !== undefined) updateData.name = updates.name;
@@ -127,6 +138,7 @@ export const useProducts = () => {
         throw error;
       }
 
+      console.log('Product updated successfully');
       await fetchProducts(); // Refresh the list
       return { success: true };
     } catch (err: any) {
@@ -137,6 +149,8 @@ export const useProducts = () => {
 
   const deleteProduct = async (id: string) => {
     try {
+      console.log('Deleting product:', id);
+      
       const { error } = await supabase
         .from('products')
         .delete()
@@ -147,6 +161,7 @@ export const useProducts = () => {
         throw error;
       }
 
+      console.log('Product deleted successfully');
       await fetchProducts(); // Refresh the list
       return { success: true };
     } catch (err: any) {

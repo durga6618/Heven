@@ -1,10 +1,10 @@
 import React, { useState, useMemo } from 'react';
-import { Filter, Grid, List } from 'lucide-react';
+import { Filter, Grid, List, RefreshCw } from 'lucide-react';
 import ProductCard from '../components/ProductCard';
 import { useProducts } from '../hooks/useProducts';
 
 const Products: React.FC = () => {
-  const { products, loading, error } = useProducts();
+  const { products, loading, error, fetchProducts } = useProducts();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
   const [sortBy, setSortBy] = useState('');
@@ -49,6 +49,11 @@ const Products: React.FC = () => {
     return filtered;
   }, [products, searchTerm, selectedCategory, sortBy, priceRange]);
 
+  const handleRetry = () => {
+    console.log('Retrying to fetch products...');
+    fetchProducts();
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -64,11 +69,16 @@ const Products: React.FC = () => {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <p className="text-red-600 mb-4">Error loading products: {error}</p>
+          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Grid className="text-red-500" size={32} />
+          </div>
+          <h2 className="text-xl font-bold text-gray-900 mb-2">Failed to Load Products</h2>
+          <p className="text-red-600 mb-4">Error: {error}</p>
           <button 
-            onClick={() => window.location.reload()}
-            className="px-4 py-2 bg-black text-white rounded-md hover:bg-gray-800"
+            onClick={handleRetry}
+            className="inline-flex items-center px-4 py-2 bg-black text-white rounded-md hover:bg-gray-800 transition-colors duration-200"
           >
+            <RefreshCw className="mr-2" size={16} />
             Retry
           </button>
         </div>
@@ -83,7 +93,12 @@ const Products: React.FC = () => {
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-8">
           <div>
             <h1 className="text-3xl font-bold text-gray-900 mb-2">Shop All Products</h1>
-            <p className="text-gray-600">Discover our complete collection of premium products</p>
+            <p className="text-gray-600">
+              {products.length > 0 
+                ? `Discover our complete collection of ${products.length} premium products`
+                : 'Discover our complete collection of premium products'
+              }
+            </p>
           </div>
           
           {/* Search and Sort */}
@@ -199,9 +214,34 @@ const Products: React.FC = () => {
               <p className="text-gray-600">
                 Showing {filteredProducts.length} of {products.length} products
               </p>
+              {products.length === 0 && !loading && (
+                <button
+                  onClick={handleRetry}
+                  className="inline-flex items-center px-3 py-1 text-sm bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors duration-200"
+                >
+                  <RefreshCw className="mr-1" size={14} />
+                  Refresh
+                </button>
+              )}
             </div>
 
-            {filteredProducts.length > 0 ? (
+            {products.length === 0 ? (
+              <div className="text-center py-12">
+                <div className="w-24 h-24 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Grid className="text-gray-400" size={32} />
+                </div>
+                <h3 className="text-lg font-medium text-gray-900 mb-2">No products available</h3>
+                <p className="text-gray-600 mb-4">
+                  There are no products in the database yet. Please check back later or contact support.
+                </p>
+                <button
+                  onClick={handleRetry}
+                  className="px-6 py-2 bg-black text-white rounded-md hover:bg-gray-800 transition-colors duration-200"
+                >
+                  Refresh Products
+                </button>
+              </div>
+            ) : filteredProducts.length > 0 ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredProducts.map((product) => (
                   <ProductCard key={product.id} product={product} />
