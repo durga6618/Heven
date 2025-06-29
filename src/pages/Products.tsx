@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Filter, Grid, List, RefreshCw } from 'lucide-react';
+import { Filter, Grid, List, RefreshCw, AlertCircle } from 'lucide-react';
 import ProductCard from '../components/ProductCard';
 import { useProducts } from '../hooks/useProducts';
 
@@ -50,7 +50,7 @@ const Products: React.FC = () => {
   }, [products, searchTerm, selectedCategory, sortBy, priceRange]);
 
   const handleRetry = () => {
-    console.log('Retrying to fetch products...');
+    console.log('🔄 User requested retry, fetching products...');
     fetchProducts();
   };
 
@@ -60,6 +60,7 @@ const Products: React.FC = () => {
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-black mx-auto"></div>
           <p className="mt-4 text-gray-600">Loading products...</p>
+          <p className="mt-2 text-sm text-gray-500">Connecting to database...</p>
         </div>
       </div>
     );
@@ -68,18 +69,23 @@ const Products: React.FC = () => {
   if (error) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
+        <div className="text-center max-w-md mx-auto p-6">
           <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Grid className="text-red-500" size={32} />
+            <AlertCircle className="text-red-500" size={32} />
           </div>
-          <h2 className="text-xl font-bold text-gray-900 mb-2">Failed to Load Products</h2>
-          <p className="text-red-600 mb-4">Error: {error}</p>
+          <h2 className="text-xl font-bold text-gray-900 mb-2">Unable to Load Products</h2>
+          <p className="text-red-600 mb-4 text-sm">{error}</p>
+          <div className="space-y-2 text-xs text-gray-500 mb-6">
+            <p>• Check your internet connection</p>
+            <p>• Verify Supabase configuration</p>
+            <p>• Ensure database is accessible</p>
+          </div>
           <button 
             onClick={handleRetry}
             className="inline-flex items-center px-4 py-2 bg-black text-white rounded-md hover:bg-gray-800 transition-colors duration-200"
           >
             <RefreshCw className="mr-2" size={16} />
-            Retry
+            Try Again
           </button>
         </div>
       </div>
@@ -230,10 +236,15 @@ const Products: React.FC = () => {
                 <div className="w-24 h-24 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
                   <Grid className="text-gray-400" size={32} />
                 </div>
-                <h3 className="text-lg font-medium text-gray-900 mb-2">No products available</h3>
+                <h3 className="text-lg font-medium text-gray-900 mb-2">No Products Available</h3>
                 <p className="text-gray-600 mb-4">
-                  There are no products in the database yet. Please check back later or contact support.
+                  The product database appears to be empty. This could be due to:
                 </p>
+                <div className="text-sm text-gray-500 mb-6 space-y-1">
+                  <p>• Database migration not completed</p>
+                  <p>• Sample data not inserted</p>
+                  <p>• Database connection issues</p>
+                </div>
                 <button
                   onClick={handleRetry}
                   className="px-6 py-2 bg-black text-white rounded-md hover:bg-gray-800 transition-colors duration-200"

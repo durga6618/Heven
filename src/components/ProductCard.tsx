@@ -20,6 +20,10 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
             src={product.image}
             alt={product.name}
             className="h-64 w-full object-cover object-center group-hover:scale-105 transition-transform duration-300"
+            onError={(e) => {
+              const target = e.target as HTMLImageElement;
+              target.src = 'https://images.pexels.com/photos/769732/pexels-photo-769732.jpeg?auto=compress&cs=tinysrgb&w=500';
+            }}
           />
           {discountPercentage > 0 && (
             <div className="absolute top-2 left-2 bg-black text-white px-2 py-1 rounded text-xs font-semibold">
@@ -29,6 +33,11 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
           {product.trending && (
             <div className="absolute top-2 right-2 bg-red-500 text-white px-2 py-1 rounded text-xs font-semibold">
               Trending
+            </div>
+          )}
+          {product.featured && (
+            <div className="absolute top-8 right-2 bg-blue-500 text-white px-2 py-1 rounded text-xs font-semibold">
+              Featured
             </div>
           )}
         </div>
